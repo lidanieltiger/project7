@@ -672,13 +672,41 @@ bool attemptMove(const Arena& a, int dir, int& r, int& c)
 // recommendation is that the player should drop a poison pellet and not
 // move; otherwise, this function sets bestDir to the recommended
 // direction to move and returns true.
+int checkRadius(const Arena& a, int r, int c){
+    int points = 0;
+    points+=a.numberOfRatsAt(r-1, c);
+    points+=a.numberOfRatsAt(r+1, c);
+    points+=a.numberOfRatsAt(r, c-1);
+    points+=a.numberOfRatsAt(r, c+1);
+    return points;
+}
 bool recommendMove(const Arena& a, int r, int c, int& bestDir)
 {
-    for(int i = 0; i < 5; i++){ //5 times. N E S W and STOP
-        
+    int minpoints = checkRadius(a, r, c);
+    cout<<"if I don't move, there are "<<minpoints<<" rats next to me.."<<endl;
+    bestDir=4;
+    if((r-1)>=1&&checkRadius(a, r-1, c)< minpoints&&a.numberOfRatsAt(r-1, c)==0){
+        minpoints = checkRadius(a, r-1, c);
+        bestDir=0; //north
     }
-}
+    if((c+1)<=a.cols()&&checkRadius(a, r, c+1)< minpoints&&a.numberOfRatsAt(r, c+1)==0){
+        minpoints = checkRadius(a, c+1, c);
+        bestDir=1;
+    }
+    if((r+1)<=a.rows()&&checkRadius(a, r+1, c)< minpoints&&a.numberOfRatsAt(r+1, c)==0){
+        minpoints = checkRadius(a, r+1, c);
+        bestDir=2;
+    }
+    if((r+1)<=a.rows()&&checkRadius(a, r, c-1)< minpoints&&a.numberOfRatsAt(r, c-1)==0){
+        minpoints = checkRadius(a, r, c-1);
+        bestDir=3;
+    }
+    if (bestDir==4)
+        return false;
+    else
+        return true;
 
+}
 ///////////////////////////////////////////////////////////////////////////
 // main()
 ///////////////////////////////////////////////////////////////////////////
