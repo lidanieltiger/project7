@@ -61,7 +61,7 @@ private:
     bool    dead;
     int deadturns;
 
-    bool permadeath;
+    bool slow;
     // TODO: You'll probably find that a rat object needs additional
     // data members to support your implementation of the behavior affected
     // by poison pellets.
@@ -193,18 +193,19 @@ bool Rat::isDead() const
 void Rat::move()
 {
     int dir = randInt(0, 3);
-    if(dead&&deadturns%2!=0){
+    if(slow&&deadturns%2!=0){
         attemptMove(*m_arena, dir, m_row, m_col);
         if (m_arena->getCellStatus(m_row, m_col)==HAS_POISON){
             m_arena->setCellStatus(m_row, m_col,EMPTY); //eat the poison
-            permadeath=true; //RAT IS SO DEAD!
+            dead=true; //RAT IS SO DEAD!
         }
         deadturns++;
-    }
-    attemptMove(*m_arena, dir, m_row, m_col);
-    if (m_arena->getCellStatus(m_row, m_col)==HAS_POISON){
-        m_arena->setCellStatus(m_row, m_col,EMPTY); //eat the poison
-        dead=true; //become dead
+    }else{
+        attemptMove(*m_arena, dir, m_row, m_col);
+        if (m_arena->getCellStatus(m_row, m_col)==HAS_POISON){
+            m_arena->setCellStatus(m_row, m_col,EMPTY); //eat the poison
+            slow=true; //become slow
+        }
     }
 }
 
@@ -266,8 +267,8 @@ string Player::move(int dir)
             case 3:
                 return "Player moved west.";
         }
-    }
-    return "Player couldn't move; player stands.";
+    }else
+        return "Player couldn't move; player stands.";
 }
 // TODO:  Attempt to move the player one step in the indicated
 //        get numberofratsat working then it's done
@@ -473,10 +474,15 @@ void Arena::moveRats() //player moves first, and then rats move. this explains w
     //        Deallocate any dead dynamically allocated rat.
     for(int i = 0; i < MAXRATS; i++){
         if(m_rats[i]!=nullptr){
-            //move the rat
+            m_rats[i]->move();
+            if(m_rats[i]->col()==m_player->col()&&m_rats[i]->row()==m_player->row()){
+                m_player->setDead();
+            }
+            if(m_rats[i]->isDead()){
+                delete m_rats[i];
+            }
         }
     }
-    // Another turn has been taken
     m_turns++;
 }
 
@@ -635,25 +641,25 @@ bool attemptMove(const Arena& a, int dir, int& r, int& c)
     switch (dir)
     {
         case 0:
-            if(r-1>=1){
+            if((r-1)>=1){
                 r--;
             }else
                 return false;
             break;
         case 1:
-            if(c+1<=MAXCOLS){
+            if((c+1)<=a.cols()){
                 c++;
             }else
                 return false;
             break;
         case 2:
-            if(r+1<=MAXROWS){
+            if((r+1)<=a.rows()){
                 r++;
             }else
                 return false;
             break;
         case 3:
-            if(c-1>=1){
+            if((c-1)>=1){
                 c--;
             }else
                 return false;
@@ -668,28 +674,9 @@ bool attemptMove(const Arena& a, int dir, int& r, int& c)
 // direction to move and returns true.
 bool recommendMove(const Arena& a, int r, int c, int& bestDir)
 {
-    // TODO:  Implement this function
-    // Delete the following line and replace it with your code.
-    return false;  // This implementation compiles, but is incorrect.
-
-    // Your replacement implementation should do something intelligent.
-    // You don't have to be any smarter than the following, although
-    // you can if you want to be:  If staying put runs the risk of a
-    // rat possibly moving onto the player's location when the rats
-    // move, yet moving in a particular direction puts the player in a
-    // position that is safe when the rats move, then the chosen
-    // action is to move to a safer location.  Similarly, if staying put
-    // is safe, but moving in certain directions puts the player in danger,
-    // then the chosen action should not be to move in one of the
-    // dangerous directions; instead, the player should stay put or move to
-    // another safe position.  In general, a position that may be moved to
-    // by many rats is more dangerous than one that may be moved to by
-    // few.
-    //
-    // Unless you want to, you do not have to take into account that a
-    // rat might be poisoned and thus sometimes less dangerous than one
-    // that is not.  That requires a more sophisticated analysis that
-    // we're not asking you to do.
+    for(int i = 0; i < 5; i++){ //5 times. N E S W and STOP
+        
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
