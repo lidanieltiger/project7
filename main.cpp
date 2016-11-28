@@ -59,9 +59,9 @@ private:
     int    m_row;
     int    m_col;
     bool    dead;
+    bool    slow;
     int deadturns;
 
-    bool slow;
     // TODO: You'll probably find that a rat object needs additional
     // data members to support your implementation of the behavior affected
     // by poison pellets.
@@ -173,6 +173,8 @@ Rat::Rat(Arena* ap, int r, int c)
     m_arena = ap;
     m_row = r;
     m_col = c;
+    slow=false;
+    deadturns=0;
 }
 
 int Rat::row() const
@@ -193,18 +195,25 @@ bool Rat::isDead() const
 void Rat::move()
 {
     int dir = randInt(0, 3);
-    if(slow&&deadturns%2!=0){
-        attemptMove(*m_arena, dir, m_row, m_col);
-        if (m_arena->getCellStatus(m_row, m_col)==HAS_POISON){
-            m_arena->setCellStatus(m_row, m_col,EMPTY); //eat the poison
-            dead=true; //RAT IS SO DEAD!
+    if(slow){
+        if(deadturns%2!=0) {
+            cout << "deadturns: " << deadturns << endl;
+            cout << "is slow" << endl;
+            attemptMove(*m_arena, dir, m_row, m_col);
+            if (m_arena->getCellStatus(m_row, m_col) == HAS_POISON) {
+                m_arena->setCellStatus(m_row, m_col, EMPTY); //eat the poison
+                dead=true;
+                cout<<"rat ate poison and is killed"<<endl;
+            }
         }
         deadturns++;
-    }else{
+    } else
+    {
         attemptMove(*m_arena, dir, m_row, m_col);
         if (m_arena->getCellStatus(m_row, m_col)==HAS_POISON){
+            cout<<"rat ate poison"<<endl;
             m_arena->setCellStatus(m_row, m_col,EMPTY); //eat the poison
-            slow=true; //become slow
+            slow = true;
         }
     }
 }
@@ -311,9 +320,9 @@ Arena::Arena(int nRows, int nCols)
 
 Arena::~Arena()
 {
-    delete m_player;
+    m_player=nullptr;
     for(int i = 0; i < m_nRats; i++){
-        delete m_rats[i];
+        m_rats[i]=nullptr;
     }
     for (int r = 1; r <= m_rows; r++)
         for (int c = 1; c <= m_cols; c++)
@@ -448,6 +457,7 @@ bool Arena::addRat(int r, int c)
             return true;
         }
     }
+    return false;
 }
 
 bool Arena::addPlayer(int r, int c)
@@ -479,7 +489,8 @@ void Arena::moveRats() //player moves first, and then rats move. this explains w
                 m_player->setDead();
             }
             if(m_rats[i]->isDead()){
-                delete m_rats[i];
+                cout<<"delete rat"<<endl;
+                m_rats[i]=nullptr;
             }
         }
     }
@@ -715,7 +726,7 @@ int main()
 {
     // Create a game
     // Use this instead to create a mini-game:   Game g(3, 5, 2);
-    Game g(10, 12, 40);
+    Game g(10, 12, 20);
 
     // Play the game
     g.play();
