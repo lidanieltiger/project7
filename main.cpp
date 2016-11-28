@@ -320,13 +320,10 @@ Arena::Arena(int nRows, int nCols)
 
 Arena::~Arena()
 {
-    m_player=nullptr;
+    delete m_player;
     for(int i = 0; i < m_nRats; i++){
-        m_rats[i]=nullptr;
+        delete m_rats[i];
     }
-    for (int r = 1; r <= m_rows; r++)
-        for (int c = 1; c <= m_cols; c++)
-            setCellStatus(r, c, EMPTY);
     // TODO:  check back and see if this is right... (delete function)
 }
 
@@ -347,13 +344,14 @@ Player* Arena::player() const
 
 int Arena::ratCount() const //gives you the number of valid pointers in m_rats
 {
-    int rats=0;
+    return m_nRats;
+    /*int rats=0;
     for(int i = 0; i < MAXRATS; i++){
         if(m_rats[i]!=nullptr){
             rats++;
         }
     }
-    return rats;
+    return rats;*/
 }
 
 int Arena::getCellStatus(int r, int c) const
@@ -451,13 +449,18 @@ bool Arena::addRat(int r, int c)
         return false;
 
     //add a rat, there is a space in the array
+    m_rats[m_nRats]=new Rat(this, r, c);
+    m_nRats++;
+    return true;
+    /*
     for(int i = 0; i < MAXRATS; i++){ //FIND AN EMPTY SPACE IN THE ARRAY TO PUT IN THE RAT
         if(m_rats[i]==nullptr){
             m_rats[i]=new Rat(this, r, c);
             return true;
         }
     }
-    return false;
+    return false;*/
+
 }
 
 bool Arena::addPlayer(int r, int c)
@@ -490,7 +493,11 @@ void Arena::moveRats() //player moves first, and then rats move. this explains w
             }
             if(m_rats[i]->isDead()){
                 cout<<"delete rat"<<endl;
-                m_rats[i]=nullptr;
+                delete m_rats[i];
+                for(int j = i+1;j<m_nRats;j++){
+                    m_rats[j-1]=m_rats[j];
+                }
+                m_nRats--;
             }
         }
     }
@@ -726,7 +733,7 @@ int main()
 {
     // Create a game
     // Use this instead to create a mini-game:   Game g(3, 5, 2);
-    Game g(10, 12, 20);
+    Game g(3, 5, 1);
 
     // Play the game
     g.play();
