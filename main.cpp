@@ -468,7 +468,7 @@ bool Arena::addPlayer(int r, int c)
 
 void Arena::moveRats() //player moves first, and then rats move. this explains why in this turn rat can kill player
 {
-    // Move all rats
+    // Move all rats blah blah
     // TODO:  Move each rat.  Mark the player as dead if necessary.
     //        Deallocate any dead dynamically allocated rat.
     for(int i = 0; i < MAXRATS; i++){
