@@ -324,7 +324,6 @@ Arena::~Arena()
     for(int i = 0; i < m_nRats; i++){
         delete m_rats[i];
     }
-    // TODO:  check back and see if this is right... (delete function)
 }
 
 int Arena::rows() const
@@ -363,10 +362,14 @@ int Arena::getCellStatus(int r, int c) const
 int Arena::numberOfRatsAt(int r, int c) const
 {
     int numrats=0;
-    for(int i = 0; i < MAXRATS; i++){ //check every single element of m_rats
+    /*for(int i = 0; i < MAXRATS; i++){ //check every single element of m_rats
         if(m_rats[i]!=nullptr)
             if(m_rats[i]->row()==r&&m_rats[i]->col()==c)
                 numrats++;
+    }*/
+    for(int i = 0; i < m_nRats; i++){ //check every single element of m_rats
+        if(m_rats[i]->row()==r&&m_rats[i]->col()==c)
+            numrats++;
     }
     return numrats;
 }
@@ -382,9 +385,6 @@ void Arena::display(string msg) const
             displayGrid[r-1][c-1] = (getCellStatus(r,c) == EMPTY ? '.' : '*');
 
     // Indicate each rat's position
-    // TODO:  If one rat is at some grid point, set the displayGrid char
-    //        to 'R'.  If it's 2 though 8, set it to '2' through '8'.
-    //        For 9 or more, set it to '9'.
     for (r = 1; r <= rows(); r++){
         for (c = 1; c <= cols(); c++){
             if(numberOfRatsAt(r, c)!=0){
@@ -485,20 +485,18 @@ void Arena::moveRats() //player moves first, and then rats move. this explains w
     // Move all rats blah blah
     // TODO:  Move each rat.  Mark the player as dead if necessary.
     //        Deallocate any dead dynamically allocated rat.
-    for(int i = 0; i < MAXRATS; i++){
-        if(m_rats[i]!=nullptr){
-            m_rats[i]->move();
-            if(m_rats[i]->col()==m_player->col()&&m_rats[i]->row()==m_player->row()){
-                m_player->setDead();
+    for(int i = 0; i < m_nRats; i++){
+        m_rats[i]->move();
+        if(m_rats[i]->col()==m_player->col()&&m_rats[i]->row()==m_player->row()){
+            m_player->setDead();
+        }
+        if(m_rats[i]->isDead()){
+            cout<<"delete rat"<<endl;
+            delete m_rats[i];
+            for(int j = i+1;j<m_nRats;j++){
+                m_rats[j-1]=m_rats[j];
             }
-            if(m_rats[i]->isDead()){
-                cout<<"delete rat"<<endl;
-                delete m_rats[i];
-                for(int j = i+1;j<m_nRats;j++){
-                    m_rats[j-1]=m_rats[j];
-                }
-                m_nRats--;
-            }
+            m_nRats--;
         }
     }
     m_turns++;
@@ -715,7 +713,7 @@ bool recommendMove(const Arena& a, int r, int c, int& bestDir)
         minpoints = checkRadius(a, r+1, c);
         bestDir=2;
     }
-    if((r+1)<=a.rows()&&checkRadius(a, r, c-1)< minpoints&&a.numberOfRatsAt(r, c-1)==0){
+    if((c-1)>=1&&checkRadius(a, r, c-1)< minpoints&&a.numberOfRatsAt(r, c-1)==0){
         minpoints = checkRadius(a, r, c-1);
         bestDir=3;
     }
@@ -733,7 +731,7 @@ int main()
 {
     // Create a game
     // Use this instead to create a mini-game:   Game g(3, 5, 2);
-    Game g(3, 5, 1);
+    Game g(10, 10, 10);
 
     // Play the game
     g.play();
