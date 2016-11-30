@@ -61,10 +61,6 @@ private:
     bool    dead;
     bool    slow;
     int deadturns;
-
-    // TODO: You'll probably find that a rat object needs additional
-    // data members to support your implementation of the behavior affected
-    // by poison pellets.
 };
 
 class Player
@@ -202,7 +198,6 @@ void Rat::move()
             if (m_arena->getCellStatus(m_row, m_col) == HAS_POISON) {
                 m_arena->setCellStatus(m_row, m_col, EMPTY); //eat the poison
                 dead=true;
-                cout<<"rat is kill"<<endl;
             }
         }
         deadturns++;
@@ -211,7 +206,6 @@ void Rat::move()
         attemptMove(*m_arena, dir, m_row, m_col);
         if (m_arena->getCellStatus(m_row, m_col)==HAS_POISON){
             m_arena->setCellStatus(m_row, m_col,EMPTY); //eat the poison
-            cout<<"ate poison first time"<<endl;
             slow = true;
         }
     }
@@ -275,11 +269,9 @@ string Player::move(int dir)
             case 3:
                 return "Player moved west.";
         }
-    }else
-        return "Player couldn't move; player stands.";
+    }
+    return "Player couldn't move; player stands.";
 }
-// TODO:  Attempt to move the player one step in the indicated
-//        get numberofratsat working then it's done
 
 
 bool Player::isDead() const
@@ -343,13 +335,6 @@ Player* Arena::player() const
 int Arena::ratCount() const //gives you the number of valid pointers in m_rats
 {
     return m_nRats;
-    /*int rats=0;
-    for(int i = 0; i < MAXRATS; i++){
-        if(m_rats[i]!=nullptr){
-            rats++;
-        }
-    }
-    return rats;*/
 }
 
 int Arena::getCellStatus(int r, int c) const
@@ -361,11 +346,6 @@ int Arena::getCellStatus(int r, int c) const
 int Arena::numberOfRatsAt(int r, int c) const
 {
     int numrats=0;
-    /*for(int i = 0; i < MAXRATS; i++){ //check every single element of m_rats
-        if(m_rats[i]!=nullptr)
-            if(m_rats[i]->row()==r&&m_rats[i]->col()==c)
-                numrats++;
-    }*/
     for(int i = 0; i < m_nRats; i++){ //check every single element of m_rats
         if(m_rats[i]->row()==r&&m_rats[i]->col()==c)
             numrats++;
@@ -442,8 +422,6 @@ bool Arena::addRat(int r, int c)
     // If there are MAXRATS existing rats, return false.  Otherwise,
     // dynamically allocate a new rat at coordinates (r,c).  Save the
     // pointer to the newly allocated rat and return true.
-
-    // TODO:  check if this is correct
     if(ratCount()>=MAXRATS)
         return false;
 
@@ -451,14 +429,6 @@ bool Arena::addRat(int r, int c)
     m_rats[m_nRats]=new Rat(this, r, c);
     m_nRats++;
     return true;
-    /*
-    for(int i = 0; i < MAXRATS; i++){ //FIND AN EMPTY SPACE IN THE ARRAY TO PUT IN THE RAT
-        if(m_rats[i]==nullptr){
-            m_rats[i]=new Rat(this, r, c);
-            return true;
-        }
-    }
-    return false;*/
 
 }
 
@@ -481,9 +451,6 @@ bool Arena::addPlayer(int r, int c)
 
 void Arena::moveRats() //player moves first, and then rats move. this explains why in this turn rat can kill player
 {
-    // Move all rats blah blah
-    // TODO:  Move each rat.  Mark the player as dead if necessary.
-    //        Deallocate any dead dynamically allocated rat.
     for(int i = 0; i < m_nRats; i++){
         m_rats[i]->move();
         if(m_rats[i]->col()==m_player->col()&&m_rats[i]->row()==m_player->row()){
@@ -494,7 +461,6 @@ void Arena::moveRats() //player moves first, and then rats move. this explains w
             for(int j = i+1;j<m_nRats;j++){
                 m_rats[j-1]=m_rats[j];
             }
-            cout<<"RAT COUNT DECREMENT"<<endl;
             m_nRats--;
         }
     }
@@ -728,8 +694,6 @@ bool recommendMove(const Arena& a, int r, int c, int& bestDir)
 void doBasicTests();
 int main()
 {
-    doBasicTests();
-    return 0;
     // Create a game
     // Use this instead to create a mini-game:   Game g(3, 5, 2);
     Game g(3, 5, 1);
@@ -787,119 +751,4 @@ void clearScreen()  // will just write a newline in an Xcode output window
 }
 
 #endif
-#include <type_traits>
-#include <cassert>
 
-#define CHECKTYPE(c, f, r, a)  \
-	static_assert(std::is_same<decltype(&c::f), r (c::*)a>::value, \
-	   "FAILED: You changed the type of " #c "::" #f);  \
-	[[gnu::unused]] r (c::* xxx##c##_##f) a = &c::f
-
-void thisFunctionWillNeverBeCalled()
-{
-    // If the student deleted or changed the interfaces to the public
-    // functions, this won't compile.  (This uses magic beyond the scope
-    // of CS 31.)
-
-    Rat r(static_cast<Arena*>(0), 1, 1);
-    CHECKTYPE(Rat, row, int, () const);
-    CHECKTYPE(Rat, col, int, () const);
-    CHECKTYPE(Rat, isDead, bool, () const);
-    CHECKTYPE(Rat, move, void, ());
-
-    Player p(static_cast<Arena*>(0), 1, 1);
-    CHECKTYPE(Player, row, int, () const);
-    CHECKTYPE(Player, col, int, () const);
-    CHECKTYPE(Player, isDead, bool, () const);
-    CHECKTYPE(Player, dropPoisonPellet, string, ());
-    CHECKTYPE(Player, move, string, (int));
-    CHECKTYPE(Player, setDead, void, ());
-
-    Arena a(1, 1);
-    CHECKTYPE(Arena, rows, int, () const);
-    CHECKTYPE(Arena, cols, int, () const);
-    CHECKTYPE(Arena, player, Player*, () const);
-    CHECKTYPE(Arena, ratCount, int, () const);
-    CHECKTYPE(Arena, getCellStatus, int, (int,int) const);
-    CHECKTYPE(Arena, numberOfRatsAt, int, (int,int) const);
-    CHECKTYPE(Arena, display, void, (string) const);
-    CHECKTYPE(Arena, setCellStatus, void, (int,int,int));
-    CHECKTYPE(Arena, addRat, bool, (int,int));
-    CHECKTYPE(Arena, addPlayer, bool, (int,int));
-    CHECKTYPE(Arena, moveRats, void, ());
-
-    Game g(1,1,1);
-    CHECKTYPE(Game, play, void, ());
-}
-
-void findTheRat(const Arena& a, int& r, int& c)
-{
-    if      (a.numberOfRatsAt(r-1, c) == 1) r--;
-    else if (a.numberOfRatsAt(r+1, c) == 1) r++;
-    else if (a.numberOfRatsAt(r, c-1) == 1) c--;
-    else if (a.numberOfRatsAt(r, c+1) == 1) c++;
-    else assert(false);
-}
-
-void doBasicTests()
-{
-    {
-        Arena a(10, 20);
-        a.addPlayer(2, 5);
-        Player* pp = a.player();
-        assert(pp->row() == 2  &&  pp->col() == 5  && ! pp->isDead());
-        assert(pp->move(NORTH) == "Player moved north.");
-        assert(pp->row() == 1  &&  pp->col() == 5  && ! pp->isDead());
-        assert(pp->move(NORTH) == "Player couldn't move; player stands.");
-        assert(pp->row() == 1  &&  pp->col() == 5  && ! pp->isDead());
-        pp->setDead();
-        assert(pp->row() == 1  &&  pp->col() == 5  && pp->isDead());
-    }
-    {
-        Arena a(10, 20);
-        int r = 4;
-        int c = 4;
-        a.setCellStatus(r-1, c, HAS_POISON);
-        a.setCellStatus(r+1, c, HAS_POISON);
-        a.setCellStatus(r, c-1, HAS_POISON);
-        a.setCellStatus(r, c+1, HAS_POISON);
-        a.addRat(r, c);
-        a.addPlayer(8, 18);
-        assert(a.ratCount() == 1);
-        assert(a.numberOfRatsAt(r, c) == 1);
-        a.moveRats();
-        assert(a.ratCount() == 1);
-        assert(a.numberOfRatsAt(r, c) == 0);
-        findTheRat(a, r, c);
-        assert(a.getCellStatus(r, c) != HAS_POISON);
-        a.moveRats();
-        assert(a.ratCount() == 1  &&  a.numberOfRatsAt(r, c) == 1);
-        a.moveRats();
-        assert(a.ratCount() == 1  &&  a.numberOfRatsAt(r, c) == 0);
-        findTheRat(a, r, c);
-        a.moveRats();
-        assert(a.ratCount() == 1  &&  a.numberOfRatsAt(r, c) == 1);
-        a.setCellStatus(r-1, c, HAS_POISON);
-        a.setCellStatus(r+1, c, HAS_POISON);
-        a.setCellStatus(r, c-1, HAS_POISON);
-        a.setCellStatus(r, c+1, HAS_POISON);
-        a.moveRats();
-        assert(a.ratCount() == 0  &&  a.numberOfRatsAt(r, c) == 0);
-        assert(a.numberOfRatsAt(r-1, c) == 0);
-        assert(a.numberOfRatsAt(r+1, c) == 0);
-        assert(a.numberOfRatsAt(r, c-1) == 0);
-        assert(a.numberOfRatsAt(r, c+1) == 0);
-
-        for (int k = 0; k < MAXRATS/4; k++)
-        {
-            a.addRat(7, 18);
-            a.addRat(9, 18);
-            a.addRat(8, 17);
-            a.addRat(8, 19);
-        }
-        assert(! a.player()->isDead());
-        a.moveRats();
-        assert(a.player()->isDead());
-    }
-    cout << "Passed all basic tests" << endl;
-}
